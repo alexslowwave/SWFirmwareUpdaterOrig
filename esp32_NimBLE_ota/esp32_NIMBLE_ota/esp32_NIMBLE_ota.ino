@@ -8,6 +8,12 @@
     as perhipheral, hence no need to activate scan or central mode. Stack usage performs better for file transfer
     if stack is increased to 8192 Bytes
 */
+
+/*
+Modified for successful initial test on SWIFT EP3. ams 2/13/25
+This version works with NimBLE 1.4.3. Modifications will be required to support NimBLE 2.0 and above.
+*/
+
 #include "NimBLEDevice.h"  // via Arduino library manager // https://github.com/h2zero/NimBLE-Arduino
 // The following file needs to be changed: "nimconfig.h"
 // Line 14: uncomment and increase MTU size to: #define CONFIG_BT_NIMBLE_ATT_PREFERRED_MTU 512
