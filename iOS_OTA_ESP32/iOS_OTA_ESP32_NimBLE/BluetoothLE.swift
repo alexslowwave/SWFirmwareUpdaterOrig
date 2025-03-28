@@ -59,6 +59,7 @@ class BLEConnection:NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     @Published var chunkCount = 2 // number of chunks to be sent before peripheral needs to accknowledge.
     @Published var elapsedTime = 0.0
     @Published var kBPerSecond = 0.0
+    @Published var errorMessage = ""
     
     
     //transfer varibles
@@ -409,9 +410,20 @@ class BLEConnection:NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     func sendFile(filename: String, fileEnding: String) {
         print("\(Date()) FUNC SendFile")
         
+        // Clear any previous error message
+        errorMessage = ""
+        
+        // First check if the firmware file exists
+        if !checkFirmwareFileExists(fileName: filename, fileEnding: fileEnding) {
+            print("\(Date()) Firmware file \(filename)\(fileEnding) does not exist")
+            errorMessage = "Firmware file \(filename)\(fileEnding) not found"
+            return
+        }
+        
         // 1. Get the data from the file(name) and copy data to dataBUffer
         guard let data: Data = try? getBinFileToData(fileName: filename, fileEnding: fileEnding) else {
             print("\(Date()) failed to open file")
+            errorMessage = "Failed to open firmware file \(filename)\(fileEnding)"
             return
         }
         dataBuffer = data
@@ -426,6 +438,26 @@ class BLEConnection:NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         writeDataToPeriheral(characteristic: otaCharacteristic!)
     }
     
+    // Helper function to check if a firmware file exists
+    func checkFirmwareFileExists(fileName: String, fileEnding: String) -> Bool {
+        // First check if file exists in the "firmware" directory in the app bundle
+        if let firmwareDirectory = Bundle.main.url(forResource: "firmware", withExtension: nil),
+           let fileURL = URL(string: "\(firmwareDirectory.absoluteString)/\(fileName)\(fileEnding)")?.standardized {
+            if FileManager.default.fileExists(atPath: fileURL.path) {
+                print("\(Date()) Found firmware file: \(fileURL.path)")
+                return true
+            }
+        }
+        
+        // Then check main bundle
+        if Bundle.main.url(forResource: fileName, withExtension: fileEnding) != nil {
+            print("\(Date()) Found firmware file in main bundle: \(fileName)\(fileEnding)")
+            return true
+        }
+        
+        print("\(Date()) Firmware file \(fileName)\(fileEnding) not found")
+        return false
+    }
     
     func writeDataToPeriheral(characteristic: CBCharacteristic) {
         

@@ -14,6 +14,9 @@
 		C564793925BE763500126AA8 /* MyHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C564793825BE763500126AA8 /* MyHelper.swift */; };
 		C564794025BE776C00126AA8 /* BluetoothLE.swift in Sources */ = {isa = PBXBuildFile; fileRef = C564793F25BE776C00126AA8 /* BluetoothLE.swift */; };
 		C564794725BE829A00126AA8 /* testfile.bin in Resources */ = {isa = PBXBuildFile; fileRef = C564794625BE829A00126AA8 /* testfile.bin */; };
+		D7AA48C12BB3EF0000000001 /* V8.bin in Resources */ = {isa = PBXBuildFile; fileRef = D7AA48B12BB3EF0000000001 /* V8.bin */; };
+		D7AA48C22BB3EF0000000002 /* V9.bin in Resources */ = {isa = PBXBuildFile; fileRef = D7AA48B22BB3EF0000000002 /* V9.bin */; };
+		D7AA48C32BB3EF0000000003 /* V10.bin in Resources */ = {isa = PBXBuildFile; fileRef = D7AA48B32BB3EF0000000003 /* V10.bin */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +29,9 @@
 		C564793825BE763500126AA8 /* MyHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyHelper.swift; sourceTree = "<group>"; };
 		C564793F25BE776C00126AA8 /* BluetoothLE.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothLE.swift; sourceTree = "<group>"; };
 		C564794625BE829A00126AA8 /* testfile.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = testfile.bin; sourceTree = "<group>"; };
+		D7AA48B12BB3EF0000000001 /* V8.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = V8.bin; sourceTree = "<group>"; };
+		D7AA48B22BB3EF0000000002 /* V9.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = V9.bin; sourceTree = "<group>"; };
+		D7AA48B32BB3EF0000000003 /* V10.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = V10.bin; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +88,9 @@
 			isa = PBXGroup;
 			children = (
 				C564794625BE829A00126AA8 /* testfile.bin */,
+				D7AA48B12BB3EF0000000001 /* V8.bin */,
+				D7AA48B22BB3EF0000000002 /* V9.bin */,
+				D7AA48B32BB3EF0000000003 /* V10.bin */,
 			);
 			path = firmware;
 			sourceTree = "<group>";
@@ -144,6 +153,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				C564794725BE829A00126AA8 /* testfile.bin in Resources */,
+				D7AA48C12BB3EF0000000001 /* V8.bin in Resources */,
+				D7AA48C22BB3EF0000000002 /* V9.bin in Resources */,
+				D7AA48C32BB3EF0000000003 /* V10.bin in Resources */,
 				C564793025BE75DD00126AA8 /* Preview Assets.xcassets in Resources */,
 				C564792D25BE75DD00126AA8 /* Assets.xcassets in Resources */,
 			);
