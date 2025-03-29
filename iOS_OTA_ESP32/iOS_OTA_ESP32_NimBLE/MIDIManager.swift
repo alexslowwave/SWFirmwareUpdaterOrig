@@ -17,7 +17,22 @@ class MIDIManager: ObservableObject {
     @Published var connectionStatusMessage: String = "Searching for device..."
     @Published var scanCount: Int = 0 // Add a counter to track number of scans
     @Published var dfuModeConfirmed: Bool = false // Flag to track if DFU mode has been confirmed
-    @Published var dfuStatusMessage: String = "Checking status..." // Status message for DFU mode
+    @Published var lastDFUStatusTime: Date? // Track when we last received a DFU status
+    private var _dfuStatusMessage: String = "Checking status..." // Private backing property
+    
+    var dfuStatusMessage: String {
+        get {
+            // Check if we haven't received a status update in 5 seconds
+            if let lastStatus = lastDFUStatusTime,
+               Date().timeIntervalSince(lastStatus) > 5.0 {
+                return "Device status unknown. This is normal during DFU reboot"
+            }
+            return _dfuStatusMessage
+        }
+        set {
+            _dfuStatusMessage = newValue
+        }
+    }
     
     private var midiClient: MIDIClientRef = 0
     private var outputPort: MIDIPortRef = 0
@@ -135,31 +150,34 @@ class MIDIManager: ObservableObject {
             
             print("🔄 Processing DFU status value: \(value) (hex: 0x\(String(value, radix: 16)))")
             
+            // Update the last status time
+            self.lastDFUStatusTime = Date()
+            
             // Store the raw value for reference
             let rawValue = value
             
             // Handle different status values
             switch rawValue {
             case 0:
-                self.dfuStatusMessage = "SWIFT is in normal mode"
+                self._dfuStatusMessage = "SWIFT is in normal mode"
                 self.dfuModeConfirmed = false
                 self.hardwareStatus = self.midiConnected ? .connected : .disconnected
                 print("✅ Device confirmed normal mode operation")
             case 1:
-                self.dfuStatusMessage = "DFU mode enabled but not active"
+                self._dfuStatusMessage = "DFU mode enabled but not active"
                 self.dfuModeConfirmed = false
                 print("ℹ️ Device reports DFU mode enabled but not fully active")
             case 2:
-                self.dfuStatusMessage = "SWIFT is in DFU mode"
+                self._dfuStatusMessage = "SWIFT is in DFU mode"
                 self.dfuModeConfirmed = true
                 self.hardwareStatus = .dfuMode
                 print("🚀 Device confirmed DFU mode active and ready for firmware update")
             default:
-                self.dfuStatusMessage = "Unknown status code: \(rawValue)"
+                self._dfuStatusMessage = "Unknown status code: \(rawValue)"
                 print("⚠️ Device returned unexpected DFU status code: \(rawValue)")
             }
             
-            print("📡 DFU Status Update: \(self.dfuStatusMessage)")
+            print("📡 DFU Status Update: \(self._dfuStatusMessage)")
             self.updateConnectionStatus()
         }
     }

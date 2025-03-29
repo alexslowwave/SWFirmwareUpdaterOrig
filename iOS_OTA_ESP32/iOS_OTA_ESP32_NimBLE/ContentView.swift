@@ -64,8 +64,8 @@ struct ContentView: View {
                             .stroke(midiManager.midiConnected ? Color.green : Color.gray, lineWidth: 2)
                     )
             }
-            .disabled(!midiManager.midiConnected || isRebooting || midiManager.hardwareStatus == .dfuMode)
-            .opacity((midiManager.midiConnected && !isRebooting && midiManager.hardwareStatus != .dfuMode) ? 1.0 : 0.5)
+            .disabled(!midiManager.midiConnected || isRebooting || midiManager.hardwareStatus == .dfuMode || ble.connected)
+            .opacity((midiManager.midiConnected && !isRebooting && midiManager.hardwareStatus != .dfuMode && !ble.connected) ? 1.0 : 0.5)
             .padding(.bottom, 5)
             
             // Reboot status message
@@ -195,7 +195,7 @@ struct ContentView: View {
                 
                 // Stop DFU status polling after 3 seconds
                 // This gives enough time to receive the last status message
-                if self.remainingTime == 12 { // 15 - 3 = 12
+                if self.remainingTime == 12 {
                     print("3 seconds elapsed, stopping DFU status polling")
                     self.midiManager.stopDFUStatusPolling()
                 }
