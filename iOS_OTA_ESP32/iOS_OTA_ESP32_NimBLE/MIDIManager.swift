@@ -414,8 +414,8 @@ class MIDIManager: ObservableObject {
         }
         
         enum ControlNumber: UInt8 {
-            case dfuModeEnable = 0x43     // CC#67 (0x43 in hex) to enable DFU mode
-            case dfuModeStatus = 0x44     // CC#68 (0x44 in hex) for DFU mode status feedback
+            case dfuModeStatus = 0x5A       // CC#90 (0x5A in hex) for DFU mode status feedback
+            case dfuModeEnable = 0x5B       // CC#91 (0x5B in hex) to enable DFU mode     
         }
     }
     
