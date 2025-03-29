@@ -159,6 +159,11 @@ struct ContentView: View {
         .onDisappear {
             cancelRebootTimer()
         }
+        .onChange(of: midiManager.dfuModeConfirmed) { newValue in
+            if newValue {
+                ble.startScanning()
+            }
+        }
     }
     
     // Start the reboot sequence with timer

@@ -10,13 +10,21 @@ import Foundation
 import CoreMIDI
 
 class MIDIManager: ObservableObject {
+
     @Published var midiDestinations: [(name: String, endpointRef: MIDIEndpointRef)] = []
     @Published var selectedMidiDestination: MIDIEndpointRef?
     @Published var midiDeviceName: String = ""
     @Published var midiConnected: Bool = false
     @Published var connectionStatusMessage: String = "Searching for device..."
     @Published var scanCount: Int = 0 // Add a counter to track number of scans
-    @Published var dfuModeConfirmed: Bool = false // Flag to track if DFU mode has been confirmed
+    @Published var dfuModeConfirmed: Bool = false {
+        didSet {
+            if dfuModeConfirmed {
+                stopDfuStatusPolling()
+                print("DFU mode confirmed, ready for BLE connection")
+            }
+        }
+    }
     @Published var dfuStatusMessage: String = "Checking status..." // Status message for DFU mode
     
     private var midiClient: MIDIClientRef = 0
@@ -156,10 +164,7 @@ class MIDIManager: ObservableObject {
             case 127:
                 self.dfuStatusMessage = "SWIFT is in DFU mode"
                 self.dfuModeConfirmed = true
-                stopDfuStatusPolling()
                 print("Device confirmed DFU mode active and ready for firmware update")
-       
-                
             default:
                 self.dfuStatusMessage = "Unknown status code: \(rawValue)"
                 print("Device returned unexpected DFU status code: \(rawValue)")
@@ -278,7 +283,7 @@ class MIDIManager: ObservableObject {
     }
     
     func checkHardwareConnection() {
-        print("Checking hardware connection...")
+        //print("Checking hardware connection...")
         fetchMIDIDestinations()
         
         // Don't change status if already in DFU mode
