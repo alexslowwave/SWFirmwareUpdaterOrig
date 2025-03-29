@@ -156,6 +156,7 @@ class MIDIManager: ObservableObject {
             case 127:
                 self.dfuStatusMessage = "SWIFT is in DFU mode"
                 self.dfuModeConfirmed = true
+                stopDfuStatusPolling()
                 print("Device confirmed DFU mode active and ready for firmware update")
        
                 
@@ -437,8 +438,8 @@ class MIDIManager: ObservableObject {
         
         //print("Starting DFU status polling timer")
         
-        // Create a timer that polls every 2 seconds
-        dfuStatusPollTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+        // Create a timer that polls every 3 seconds
+        dfuStatusPollTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
             if self.midiConnected {
@@ -453,5 +454,10 @@ class MIDIManager: ObservableObject {
         
         // Poll immediately without waiting for the timer
         pollDFUStatus()
+    }
+
+    private func stopDfuStatusPolling() {
+        dfuStatusPollTimer?.invalidate()
+        dfuStatusPollTimer = nil
     }
 } 
