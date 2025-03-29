@@ -27,13 +27,11 @@ struct ContentView: View {
             // MIDI Connection Status
             HStack(spacing: 5) {
                 Circle()
-                    .fill(midiManager.hardwareStatus == .dfuMode ? Color.green : 
-                          midiManager.midiConnected ? Color.green : Color.yellow)
+                    .fill(midiManager.midiConnected ? Color.green : Color.yellow)
                     .frame(width: 10, height: 10)
                 
                 Text(midiManager.connectionStatusMessage)
                     .font(.system(size: 14))
-                    .foregroundColor(midiManager.hardwareStatus == .dfuMode ? .green : .primary)
                 
                 Button(action: {
                     midiManager.startPeriodicHardwareCheck()
@@ -74,17 +72,12 @@ struct ContentView: View {
                     .foregroundColor(.orange)
                     .font(.system(size: 14))
                     .padding(.bottom, 10)
-            } else if midiManager.hardwareStatus == .dfuMode {
-                Text("Device is ready for firmware flashing!")
-                    .foregroundColor(.green)
-                    .font(.system(size: 14, weight: .bold))
-                    .padding(.bottom, 10)
             } else {
                 Spacer()
                     .frame(height: 24) // Maintains layout even when message is hidden
                     .padding(.bottom, 10)
             }
-            
+        /*
             // BLE Connection Buttons
             HStack{
                 Button(action: {
@@ -112,7 +105,7 @@ struct ContentView: View {
                 .opacity(isRebooting ? 0.5 : 1.0)
             }
             .padding(.bottom, 10)
-            
+          */
             // BLE Status Information
             VStack {
                 Text("Device : \(ble.name)")

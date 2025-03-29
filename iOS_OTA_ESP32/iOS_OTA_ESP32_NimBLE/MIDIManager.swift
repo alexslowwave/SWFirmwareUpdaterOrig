@@ -57,7 +57,7 @@ class MIDIManager: ObservableObject {
         setupMIDI()
         
         // Debug: Print MIDI constants
-        print("🎹 MIDI Constants:")
+        print("MIDI Constants:")
         print("  Control Change status byte: 0x\(String(MIDIConstants.controlChange, radix: 16, uppercase: true))")
         print("  DFU Mode Enable CC#: \(MIDIConstants.ControlNumber.dfuModeEnable.rawValue) (0x\(String(MIDIConstants.ControlNumber.dfuModeEnable.rawValue, radix: 16, uppercase: true)))")
         print("  DFU Mode Status CC#: \(MIDIConstants.ControlNumber.dfuModeStatus.rawValue) (0x\(String(MIDIConstants.ControlNumber.dfuModeStatus.rawValue, radix: 16, uppercase: true)))")
@@ -122,14 +122,14 @@ class MIDIManager: ObservableObject {
             let statusType = rawStatusByte & 0xF0  // Top 4 bits (message type)
             let channel = rawStatusByte & 0x0F     // Bottom 4 bits (channel)
             
-            print("📦 MIDI Packet \(i): Status: 0x\(String(rawStatusByte, radix: 16, uppercase: true)) (Type: 0x\(String(statusType, radix: 16, uppercase: true)), Channel: \(channel))")
+            print("MIDI Packet \(i): Status: 0x\(String(rawStatusByte, radix: 16, uppercase: true)) (Type: 0x\(String(statusType, radix: 16, uppercase: true)), Channel: \(channel))")
             
             // Check if it's a Control Change message (0xB0)
             if statusType == MIDIConstants.controlChange {
                 let controlNumber = packet.data.1
                 let value = packet.data.2
                 
-                print("📥 Received MIDI CC #\(controlNumber) with value \(value)")
+                print("Received MIDI CC #\(controlNumber) with value \(value)")
                 
                 // Check if it's the DFU status CC
                 if controlNumber == MIDIConstants.ControlNumber.dfuModeStatus.rawValue {
@@ -148,7 +148,7 @@ class MIDIManager: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             
-            print("🔄 Processing DFU status value: \(value) (hex: 0x\(String(value, radix: 16)))")
+            print("Processing DFU status value: \(value) (hex: 0x\(String(value, radix: 16)))")
             
             // Update the last status time
             self.lastDFUStatusTime = Date()
@@ -162,22 +162,22 @@ class MIDIManager: ObservableObject {
                 self._dfuStatusMessage = "SWIFT is in normal mode"
                 self.dfuModeConfirmed = false
                 self.hardwareStatus = self.midiConnected ? .connected : .disconnected
-                print("✅ Device confirmed normal mode operation")
+                print("Device confirmed normal mode operation")
             case 1:
                 self._dfuStatusMessage = "DFU mode enabled but not active"
                 self.dfuModeConfirmed = false
-                print("ℹ️ Device reports DFU mode enabled but not fully active")
+                print("Device reports DFU mode enabled but not fully active")
             case 2:
                 self._dfuStatusMessage = "SWIFT is in DFU mode"
                 self.dfuModeConfirmed = true
                 self.hardwareStatus = .dfuMode
-                print("🚀 Device confirmed DFU mode active and ready for firmware update")
+                print("Device confirmed DFU mode active and ready for firmware update")
             default:
                 self._dfuStatusMessage = "Unknown status code: \(rawValue)"
-                print("⚠️ Device returned unexpected DFU status code: \(rawValue)")
+                print("Device returned unexpected DFU status code: \(rawValue)")
             }
             
-            print("📡 DFU Status Update: \(self._dfuStatusMessage)")
+            print("DFU Status Update: \(self._dfuStatusMessage)")
             self.updateConnectionStatus()
         }
     }
@@ -355,7 +355,7 @@ class MIDIManager: ObservableObject {
         case .disconnected:
             connectionStatusMessage = "Device not found (Retrying...)"
         case .dfuMode:
-            connectionStatusMessage = "✅ \(midiDeviceName) is in DFU mode! Ready to flash."
+            connectionStatusMessage = " \(midiDeviceName) is in DFU mode. Ready to flash."
         }
     }
     
@@ -393,7 +393,7 @@ class MIDIManager: ObservableObject {
     
     private func sendMIDIMessage(_ message: MIDIMessage) {
         guard let destination = selectedMidiDestination else {
-            print("❌ MIDI destination not found or not selected.")
+            print("MIDI destination not found or not selected.")
             return
         }
         
@@ -409,7 +409,7 @@ class MIDIManager: ObservableObject {
         var packetList = MIDIPacketList(numPackets: 1, packet: packet)
         MIDISend(outputPort, destination, &packetList)
         
-        print("📤 Sent MIDI message: CC #\(midiBytes[1]) value \(midiBytes[2]) to \(midiDeviceName)")
+        print("Sent MIDI message: CC #\(midiBytes[1]) value \(midiBytes[2]) to \(midiDeviceName)")
     }
     
     // Helper structure
