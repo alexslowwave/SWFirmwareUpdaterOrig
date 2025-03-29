@@ -60,10 +60,39 @@ class MIDIManager: ObservableObject {
         if midiConnected {
             startDFUStatusPolling()
         }
+        
+        // Add observer for BLE device disconnections
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleBLEDisconnection(_:)),
+            name: Notification.Name("BLEDeviceDisconnected"),
+            object: nil
+        )
     }
     
     deinit {
         stopTimers()
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handleBLEDisconnection(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let updateCompleted = userInfo["updateCompleted"] as? Bool else {
+            return
+        }
+        
+        if updateCompleted {
+            print("Device disconnected after completing firmware update - resetting DFU mode")
+            DispatchQueue.main.async {
+                self.dfuModeConfirmed = false
+                self.dfuStatusMessage = "Firmware update completed. Device restarting..."
+                
+                // Wait a few seconds before starting to scan for the device in normal mode
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    self.startPeriodicHardwareCheck()
+                }
+            }
+        }
     }
     
     // MARK: - Setup
