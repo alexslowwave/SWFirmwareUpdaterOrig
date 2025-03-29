@@ -21,19 +21,16 @@ struct ContentView: View {
     
     var body: some View{
         VStack{
-            Text("Shiftwave SWIFT Bluetooth Firmware Updater").bold()
+            Text("Shiftwave SWIFT Firmware Updater").bold()
                 .padding(.bottom, 10)
-            
             // MIDI Connection Status
             HStack(spacing: 5) {
                 Circle()
-                    .fill(midiManager.hardwareStatus == .dfuMode ? Color.green : 
-                          midiManager.midiConnected ? Color.green : Color.yellow)
+                    .fill(midiManager.midiConnected ? Color.green : Color.yellow)
                     .frame(width: 10, height: 10)
                 
                 Text(midiManager.connectionStatusMessage)
                     .font(.system(size: 14))
-                    .foregroundColor(midiManager.hardwareStatus == .dfuMode ? .green : .primary)
                 
                 Button(action: {
                     midiManager.startPeriodicHardwareCheck()
@@ -48,7 +45,10 @@ struct ContentView: View {
             if midiManager.midiConnected {
                 Text(midiManager.dfuStatusMessage)
                     .font(.system(size: 13))
-                    .foregroundColor(midiManager.hardwareStatus == .dfuMode ? .green : .blue)
+                    .padding(.vertical, 2)
+            } else {
+                Spacer()
+                    .frame(height: 20) // Maintains layout even when message is hidden
                     .padding(.vertical, 2)
             }
             
@@ -64,8 +64,8 @@ struct ContentView: View {
                             .stroke(midiManager.midiConnected ? Color.green : Color.gray, lineWidth: 2)
                     )
             }
-            .disabled(!midiManager.midiConnected || isRebooting || midiManager.hardwareStatus == .dfuMode)
-            .opacity((midiManager.midiConnected && !isRebooting && midiManager.hardwareStatus != .dfuMode) ? 1.0 : 0.5)
+            .disabled(!midiManager.midiConnected || isRebooting || (midiManager.hardwareStatus == .dfuMode))
+            .opacity((midiManager.midiConnected && !isRebooting && !(midiManager.hardwareStatus == .dfuMode)) ? 1.0 : 0.5)
             .padding(.bottom, 5)
             
             // Reboot status message
@@ -75,9 +75,9 @@ struct ContentView: View {
                     .font(.system(size: 14))
                     .padding(.bottom, 10)
             } else if midiManager.hardwareStatus == .dfuMode {
-                Text("Device is ready for firmware flashing!")
+                Text("SWIFT is ready for firmware flashing")
                     .foregroundColor(.green)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: 14))
                     .padding(.bottom, 10)
             } else {
                 Spacer()
@@ -85,6 +85,7 @@ struct ContentView: View {
                     .padding(.bottom, 10)
             }
             
+            /*
             // BLE Connection Buttons
             HStack{
                 Button(action: {
@@ -113,18 +114,11 @@ struct ContentView: View {
             }
             .padding(.bottom, 10)
             
-            // BLE Status Information
-            VStack {
-                Text("Device : \(ble.name)")
-                Text("Transfer speed : \(ble.kBPerSecond, specifier: "%.1f") kB/s")
-                Text("Elapsed time   : \(ble.elapsedTime, specifier: "%.1f") s")
-                Text("Upload progress: \(ble.transferProgress, specifier: "%.1f") %")
-            }
-            .padding(.bottom, 10)
+             */
             
             // Firmware Version Selection
             VStack {
-                Text("Select Firmware Version").font(.headline)
+                Text("Select Firmware Version").font(.headline).opacity((midiManager.hardwareStatus == .dfuMode) ? 1.0 : 0.3)
                 HStack {
                     ForEach(firmwareVersions, id: \.self) { version in
                         Button(action: {
@@ -134,10 +128,10 @@ struct ContentView: View {
                                 .padding()
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 15)
-                                        .stroke(selectedFirmware == version ? Color.green : colorChange(ble.connected), lineWidth: 2)
+                                        .stroke(selectedFirmware == version ? Color.green : ble.connected ? Color.green : Color.gray, lineWidth: 2)
                                 )
                                 .background(selectedFirmware == version ? Color.green.opacity(0.2) : Color.clear)
-                        }
+                        }.disabled(midiManager.hardwareStatus != .dfuMode)
                     }
                 }
                 .padding()
@@ -148,9 +142,25 @@ struct ContentView: View {
                 Button(action: {
                     ble.sendFile(filename: selectedFirmware, fileEnding: ".bin")
                 }){
-                    Text("Flash \(selectedFirmware).bin to ESP32").padding().overlay(RoundedRectangle(cornerRadius: 15).stroke(colorChange(ble.connected), lineWidth: 2))
+                    Text("Flash \(selectedFirmware).bin to SWIFT")
+                        .padding()
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke((midiManager.hardwareStatus == .dfuMode) ? Color.green : Color.gray, lineWidth: 2)
+                        )
                 }.disabled(ble.transferOngoing)
             }
+            
+            // BLE Status Information
+            VStack {
+                Text("Device : \(ble.name)")
+                    .opacity(ble.transferOngoing ?  1 : 0.3)
+                Text("Transfer speed : \(ble.kBPerSecond, specifier: "%.1f") kB/s").opacity(ble.transferOngoing ?  1 : 0.3)
+                Text("Elapsed time   : \(ble.elapsedTime, specifier: "%.1f") s")
+                    .opacity(ble.transferOngoing ?  1 : 0.3)
+                Text("Upload progress: \(ble.transferProgress, specifier: "%.1f") %").opacity(ble.transferOngoing ?  1 : 0.3)
+            }
+            .padding(.bottom, 10)
             
             if !ble.errorMessage.isEmpty {
                 Text(ble.errorMessage)
@@ -158,11 +168,11 @@ struct ContentView: View {
                     .padding()
             }
             
-            Divider()
-            VStack{
-                Stepper("chunks (1-4) per write cycle: \(ble.chunkCount)", value: $ble.chunkCount, in: 1...4)
-                    .disabled(ble.transferOngoing)
-            }
+//            Divider()
+//            VStack{
+//                Stepper("chunks (1-4) per write cycle: \(ble.chunkCount)", value: $ble.chunkCount, in: 1...4)
+//                    .disabled(ble.transferOngoing)
+//            }
         }
         .padding()
         .accentColor(colorChange(ble.connected))
