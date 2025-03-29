@@ -17,6 +17,8 @@
 		D7AA48C12BB3EF0000000001 /* V8.bin in Resources */ = {isa = PBXBuildFile; fileRef = D7AA48B12BB3EF0000000001 /* V8.bin */; };
 		D7AA48C22BB3EF0000000002 /* V9.bin in Resources */ = {isa = PBXBuildFile; fileRef = D7AA48B22BB3EF0000000002 /* V9.bin */; };
 		D7AA48C32BB3EF0000000003 /* V10.bin in Resources */ = {isa = PBXBuildFile; fileRef = D7AA48B32BB3EF0000000003 /* V10.bin */; };
+		D7AA48C42BB3FF0000000001 /* MIDIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AA48B42BB3FF0000000001 /* MIDIManager.swift */; };
+		D7AA48C52BB3FF0000000002 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D7AA48B52BB3FF0000000002 /* CoreMIDI.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +34,8 @@
 		D7AA48B12BB3EF0000000001 /* V8.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = V8.bin; sourceTree = "<group>"; };
 		D7AA48B22BB3EF0000000002 /* V9.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = V9.bin; sourceTree = "<group>"; };
 		D7AA48B32BB3EF0000000003 /* V10.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = V10.bin; sourceTree = "<group>"; };
+		D7AA48B42BB3FF0000000001 /* MIDIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIManager.swift; sourceTree = "<group>"; };
+		D7AA48B52BB3FF0000000002 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -39,6 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D7AA48C52BB3FF0000000002 /* CoreMIDI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -50,6 +55,7 @@
 			children = (
 				C564792725BE75DC00126AA8 /* iOS_OTA_ESP32_NimBLE */,
 				C564792625BE75DC00126AA8 /* Products */,
+				D7AA48B62BB3FF0000000003 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -70,6 +76,7 @@
 				C564792C25BE75DD00126AA8 /* Assets.xcassets */,
 				C564793125BE75DD00126AA8 /* Info.plist */,
 				C564793F25BE776C00126AA8 /* BluetoothLE.swift */,
+				D7AA48B42BB3FF0000000001 /* MIDIManager.swift */,
 				C564793B25BE775A00126AA8 /* firmware */,
 				C564792E25BE75DD00126AA8 /* Preview Content */,
 			);
@@ -93,6 +100,14 @@
 				D7AA48B32BB3EF0000000003 /* V10.bin */,
 			);
 			path = firmware;
+			sourceTree = "<group>";
+		};
+		D7AA48B62BB3FF0000000003 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D7AA48B52BB3FF0000000002 /* CoreMIDI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -172,6 +187,7 @@
 				C564792925BE75DC00126AA8 /* iOS_OTA_ESP32App.swift in Sources */,
 				C564793925BE763500126AA8 /* MyHelper.swift in Sources */,
 				C564794025BE776C00126AA8 /* BluetoothLE.swift in Sources */,
+				D7AA48C42BB3FF0000000001 /* MIDIManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

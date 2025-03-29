@@ -61,6 +61,9 @@ class BLEConnection:NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     @Published var kBPerSecond = 0.0
     @Published var errorMessage = ""
     
+    // MIDI properties
+    @Published var midiConnected = false
+    @Published var midiDeviceName = ""
     
     //transfer varibles
     var dataToSend = Data()
@@ -532,5 +535,23 @@ class Countdown {
     }
     deinit {
         timer.invalidate()
+    }
+}
+
+// MIDI Constants and helper functions
+private enum MIDIConstants {
+    static let controlChange: UInt8 = 0xB0
+    
+    enum ControlNumber: UInt8 {
+        case firmwareUpdate = 0x43
+    }
+}
+
+private struct MIDIMessage {
+    let controlNumber: MIDIConstants.ControlNumber
+    let value: UInt8
+    
+    var bytes: [UInt8] {
+        [MIDIConstants.controlChange, controlNumber.rawValue, value]
     }
 }

@@ -9,11 +9,14 @@ import SwiftUI
 
 @main
 struct iOS_OTA_ESP32App: App {
-    var ble  = BLEConnection()
+    var ble = BLEConnection()
+    @StateObject var midiManager = MIDIManager()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(ble)
+                .environmentObject(midiManager)
         }
     }
 }

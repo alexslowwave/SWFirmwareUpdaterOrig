@@ -22,6 +22,8 @@
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>This App uses Bluetooth to perform OTA on a ESP32</string>
+	<key>NSMIDIUsageDescription</key>
+	<string>This App uses MIDI to communicate with connected devices</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
