@@ -33,7 +33,6 @@ class MIDIManager: ObservableObject {
         case scanning
         case connected
         case disconnected
-        case dfuMode // New state for DFU mode
     }
     
     @Published var hardwareStatus: HardwareStatus = .unknown
@@ -148,12 +147,18 @@ class MIDIManager: ObservableObject {
             case 1:
                 self.dfuStatusMessage = "DFU mode enabled but not active"
                 self.dfuModeConfirmed = false
-                print("Device reports DFU mode enabled but not fully active")
-            case 2:
+                print("Device reports DFU mode enabled but not  active")
+            case 6 ... 126:
+                self.dfuStatusMessage = "SWIFT is in normal mode, running V\(Int(rawValue))"
+                self.dfuModeConfirmed = false
+                self.hardwareStatus = self.midiConnected ? .connected : .disconnected
+                print("Device confirmed normal mode operation and version number")
+            case 127:
                 self.dfuStatusMessage = "SWIFT is in DFU mode"
                 self.dfuModeConfirmed = true
-                self.hardwareStatus = .dfuMode
                 print("Device confirmed DFU mode active and ready for firmware update")
+       
+                
             default:
                 self.dfuStatusMessage = "Unknown status code: \(rawValue)"
                 print("Device returned unexpected DFU status code: \(rawValue)")
@@ -276,7 +281,7 @@ class MIDIManager: ObservableObject {
         fetchMIDIDestinations()
         
         // Don't change status if already in DFU mode
-        if hardwareStatus == .dfuMode {
+        if dfuModeConfirmed {
             return
         }
         
@@ -335,8 +340,6 @@ class MIDIManager: ObservableObject {
             connectionStatusMessage = "Connected to \(midiDeviceName) via USB"
         case .disconnected:
             connectionStatusMessage = "Device not found (Retrying...)"
-        case .dfuMode:
-            connectionStatusMessage = " \(midiDeviceName) is in DFU mode."
         }
     }
     
