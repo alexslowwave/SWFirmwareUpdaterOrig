@@ -74,17 +74,13 @@ struct ContentView: View {
                     .foregroundColor(.orange)
                     .font(.system(size: 14))
                     .padding(.bottom, 10)
-            } else if midiManager.hardwareStatus == .dfuMode {
-                Text("Device is ready for firmware flashing!")
-                    .foregroundColor(.green)
-                    .font(.system(size: 14, weight: .bold))
-                    .padding(.bottom, 10)
             } else {
                 Spacer()
                     .frame(height: 24) // Maintains layout even when message is hidden
                     .padding(.bottom, 10)
             }
             
+            /* IMPORTANT: Preserve this commented code for future use
             // BLE Connection Buttons
             HStack{
                 Button(action: {
@@ -112,6 +108,7 @@ struct ContentView: View {
                 .opacity(isRebooting ? 0.5 : 1.0)
             }
             .padding(.bottom, 10)
+            */
             
             // BLE Status Information
             VStack {
