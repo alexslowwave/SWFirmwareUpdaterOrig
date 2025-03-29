@@ -192,6 +192,13 @@ struct ContentView: View {
             
             if self.remainingTime > 0 {
                 self.remainingTime -= 1
+                
+                // Stop DFU status polling after 3 seconds
+                // This gives enough time to receive the last status message
+                if self.remainingTime == 12 { // 15 - 3 = 12
+                    print("3 seconds elapsed, stopping DFU status polling")
+                    self.midiManager.stopDFUStatusPolling()
+                }
             } else {
                 self.isRebooting = false
                 self.cancelRebootTimer()

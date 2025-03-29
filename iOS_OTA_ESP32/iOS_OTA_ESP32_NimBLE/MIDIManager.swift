@@ -452,4 +452,13 @@ class MIDIManager: ObservableObject {
         // Poll immediately without waiting for the timer
         pollDFUStatus()
     }
+    
+    // Stop polling for DFU status
+    func stopDFUStatusPolling() {
+        if dfuStatusPollTimer != nil {
+            print("Stopping DFU status polling timer")
+            dfuStatusPollTimer?.invalidate()
+            dfuStatusPollTimer = nil
+        }
+    }
 } 
