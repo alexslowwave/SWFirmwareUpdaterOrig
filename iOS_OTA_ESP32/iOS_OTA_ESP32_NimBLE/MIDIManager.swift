@@ -17,15 +17,22 @@ class MIDIManager: ObservableObject {
     @Published var midiConnected: Bool = false
     @Published var connectionStatusMessage: String = "Searching for device..."
     @Published var scanCount: Int = 0 // Add a counter to track number of scans
+    @Published var dfuStatusPollAttempts: Int = 0 // Track number of DFU status poll attempts
+    @Published var restartAttempts: Int = 0 // Track number of restart attempts
     @Published var dfuModeConfirmed: Bool = false {
         didSet {
             if dfuModeConfirmed {
                 stopDfuStatusPolling()
                 print("DFU mode confirmed, ready for BLE connection")
+                // Reset restart attempts when DFU mode is confirmed
+                restartAttempts = 0
             }
         }
     }
-    @Published var dfuStatusMessage: String = "Checking status..." // Status message for DFU mode
+    @Published var dfuStatusMessage: String = "Checking device status...please wait..." // Status message for DFU mode
+    
+    // Constants
+    private let maxDfuStatusPollAttempts = 5 // Maximum number of DFU status poll attempts before restarting
     
     private var midiClient: MIDIClientRef = 0
     private var outputPort: MIDIPortRef = 0
@@ -47,12 +54,6 @@ class MIDIManager: ObservableObject {
     
     init() {
         setupMIDI()
-        
-        // Debug: Print MIDI constants
-        print("MIDI Constants:")
-        print("  Control Change status byte: 0x\(String(MIDIConstants.controlChange, radix: 16, uppercase: true))")
-        print("  DFU Mode Enable CC#: \(MIDIConstants.ControlNumber.dfuModeEnable.rawValue) (0x\(String(MIDIConstants.ControlNumber.dfuModeEnable.rawValue, radix: 16, uppercase: true)))")
-        print("  DFU Mode Status CC#: \(MIDIConstants.ControlNumber.dfuModeStatus.rawValue) (0x\(String(MIDIConstants.ControlNumber.dfuModeStatus.rawValue, radix: 16, uppercase: true)))")
         
         startPeriodicHardwareCheck()
         
@@ -169,6 +170,11 @@ class MIDIManager: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             
+            // Reset poll attempts counter since we received a response
+            self.dfuStatusPollAttempts = 0
+            // Reset restart attempts counter since we received a response
+            self.restartAttempts = 0
+            
             print("Processing DFU status value: \(value) (hex: 0x\(String(value, radix: 16)))")
             
             // Store the raw value for reference
@@ -184,7 +190,7 @@ class MIDIManager: ObservableObject {
             case 1:
                 self.dfuStatusMessage = "DFU mode enabled but not active"
                 self.dfuModeConfirmed = false
-                print("Device reports DFU mode enabled but not  active")
+                print("Device reports DFU mode enabled but not active")
             case 6 ... 126:
                 self.dfuStatusMessage = "SWIFT is in normal mode, running V\(Int(rawValue))"
                 self.dfuModeConfirmed = false
@@ -312,7 +318,7 @@ class MIDIManager: ObservableObject {
     }
     
     func checkHardwareConnection() {
-        //print("Checking hardware connection...")
+        // Fetch available MIDI destinations
         fetchMIDIDestinations()
         
         // Don't change status if already in DFU mode
@@ -320,9 +326,7 @@ class MIDIManager: ObservableObject {
             return
         }
         
-        hardwareStatus = .scanning
-        
-        // Check if any of our devices are still connected
+        // Check if any of our devices are connected
         let isDeviceConnected = midiDestinations.contains { destination in
             for portName in portNames {
                 if destination.name.contains(portName) {
@@ -332,34 +336,51 @@ class MIDIManager: ObservableObject {
             return false
         }
         
-        if !isDeviceConnected {
-            // Device was disconnected
-            selectedMidiDestination = nil
-            midiConnected = false
-            hardwareStatus = .disconnected
-            dfuModeConfirmed = false  // Reset DFU mode flag when disconnected
-            
-            // Try to reconnect
-            scanForPort()
-        } else if hardwareStatus != .connected {
-            // Device was reconnected or is still connected
-            if let matchingPort = midiDestinations.first(where: { destination in
-                for portName in portNames {
-                    if destination.name.contains(portName) {
-                        return true
+        // Handle device connection state changes
+        if isDeviceConnected {
+            // Device is connected
+            if hardwareStatus != .connected {
+                // Device just became connected (either new connection or reconnection)
+                if let matchingPort = midiDestinations.first(where: { destination in
+                    for portName in portNames {
+                        if destination.name.contains(portName) {
+                            return true
+                        }
                     }
+                    return false
+                }) {
+                    // Found a matching device
+                    print("Device Connected")
+                    selectedMidiDestination = matchingPort.endpointRef
+                    midiDeviceName = matchingPort.name
+                    midiConnected = true
+                    
+                    // Only reset status message if we're transitioning from disconnected
+                    if hardwareStatus == .disconnected {
+                        dfuStatusMessage = "Checking status...please wait..."
+                    }
+                    
+                    hardwareStatus = .connected
+                    
+                    // Start polling for DFU status when connected
+                    startDFUStatusPolling()
                 }
-                return false
-            }) {
-                print("Device Connected")
-                selectedMidiDestination = matchingPort.endpointRef
-                midiDeviceName = matchingPort.name
-                midiConnected = true
-                hardwareStatus = .connected
-                
-                // Start polling for DFU status when connected
-                startDFUStatusPolling()
             }
+            // If already connected, we don't need to do anything
+        } else {
+            // Device is disconnected
+            if hardwareStatus == .connected || hardwareStatus == .scanning {
+                // Device was previously connected and is now disconnected
+                print("Device Disconnected")
+                selectedMidiDestination = nil
+                midiDeviceName = ""
+                midiConnected = false
+                hardwareStatus = .disconnected
+                dfuModeConfirmed = false  // Reset DFU mode flag when disconnected
+            }
+            
+            // Always try to reconnect when not connected
+            scanForPort()
         }
         
         updateConnectionStatus()
@@ -405,9 +426,45 @@ class MIDIManager: ObservableObject {
     }
     
     func pollDFUStatus() {
-        print("Polling device DFU status")
+        // Increment poll attempts counter
+        dfuStatusPollAttempts += 1
+        print("Polling device DFU status (attempt \(dfuStatusPollAttempts))")
+        
+        // Check if we've reached the maximum number of attempts
+        if dfuStatusPollAttempts >= maxDfuStatusPollAttempts {
+            print("Maximum DFU status poll attempts (\(maxDfuStatusPollAttempts)) reached without response. Restarting device...")
+            dfuStatusMessage = "No response, attempting device restart..."
+            restartSWIFT()
+            
+            // Reset the counter after attempting restart
+            dfuStatusPollAttempts = 0
+            return
+        }
+        
         let message = MIDIMessage(controlNumber: .dfuModeStatus, value: 0) // Value doesn't matter for status requests
         sendMIDIMessage(message)
+    }
+    
+    func restartSWIFT() {
+        restartAttempts += 1
+        print("Sending restart command to SWIFT (attempt \(restartAttempts))")
+        
+        // Check if we've reached the maximum restart attempts
+        if restartAttempts > 2 {
+            print("Maximum restart attempts (2) reached. Stopping restart attempts.")
+            dfuStatusMessage = "Please disconnect and reconnect SWIFT"
+            // Stop polling to prevent further restart attempts
+            stopDfuStatusPolling()
+            return
+        }
+        
+        let message = MIDIMessage(controlNumber: .swiftRestart, value: 0) // Value doesn't matter for reboot request
+        sendMIDIMessage(message)
+        
+        // Reset the status message after attempting restart
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            self.dfuStatusMessage = "Checking device status...please wait..."
+        }
     }
     
     private func sendMIDIMessage(_ message: MIDIMessage) {
@@ -453,6 +510,7 @@ class MIDIManager: ObservableObject {
         enum ControlNumber: UInt8 {
             case dfuModeStatus = 0x5A       // CC#90 (0x5A in hex) for DFU mode status feedback
             case dfuModeEnable = 0x5B       // CC#91 (0x5B in hex) to enable DFU mode
+            case swiftRestart = 0x13        // CC#19 (0x13 in hex) to reboot SWIFT when in normal mode
         }
     }
     
