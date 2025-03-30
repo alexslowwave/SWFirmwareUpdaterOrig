@@ -162,6 +162,18 @@ class BLEConnection:NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         transferOngoing = false
         print("\(Date()) CM DidDisconnectPeripheral")
         print("\(Date()) \(peripheral.name ?? "unknown") disconnected")
+        
+        // Check if a firmware update was in progress and notify that device is restarting
+        let wasUpdating = transferProgress > 0 && transferProgress < 100
+        let updateCompleted = transferProgress >= 99.9
+        
+        // Notify MIDIManager about the disconnection
+        NotificationCenter.default.post(
+            name: Notification.Name("BLEDeviceDisconnected"),
+            object: nil,
+            userInfo: ["updateCompleted": updateCompleted]
+        )
+        
         // Did our currently-connected peripheral just disconnect?
         if state.peripheral?.identifier == peripheral.identifier {
             name = ""

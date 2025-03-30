@@ -16,166 +16,222 @@ struct ContentView: View {
     
     // States for timer functionality
     @State private var isRebooting = false
-    @State private var remainingTime = 15
+    @State private var remainingTime = 10
     @State private var rebootTimer: Timer?
     
-    var body: some View{
-        VStack{
-            Text("Shiftwave SWIFT Bluetooth Firmware Updater").bold()
+    // Define a consistent width for the UI
+    private let contentWidth: CGFloat = 300
+    
+    // Standardized font sizes
+    private let titleFontSize: CGFloat = 18
+    private let bodyFontSize: CGFloat = 14
+    private let buttonFontSize: CGFloat = 15 // Slightly larger than body text
+    private let smallFontSize: CGFloat = 13
+    
+    private var headerView: some View {
+        VStack {
+            Text("Shiftwave Firmware Updater").bold()
+                .font(.system(size: titleFontSize))
+                .kerning(0.5)
+                .frame(width: contentWidth, alignment: .center)
                 .padding(.bottom, 10)
-            
-            // MIDI Connection Status
+            connectionStatusView
+        }
+    }
+    
+    private var connectionStatusView: some View {
+        VStack {
             HStack(spacing: 5) {
                 Circle()
-                    .fill(midiManager.hardwareStatus == .dfuMode ? Color.green : 
-                          midiManager.midiConnected ? Color.green : Color.yellow)
+                    .fill(midiManager.midiConnected ? Color.green : Color.yellow)
                     .frame(width: 10, height: 10)
                 
                 Text(midiManager.connectionStatusMessage)
-                    .font(.system(size: 14))
-                    .foregroundColor(midiManager.hardwareStatus == .dfuMode ? .green : .primary)
+                    .font(.system(size: smallFontSize))
                 
-                Button(action: {
-                    midiManager.startPeriodicHardwareCheck()
-                }) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.caption)
-                }
+                Spacer()
             }
+            .frame(width: contentWidth)
             .padding(.vertical, 5)
             
-            // DFU Status Message - show when device is connected
             if midiManager.midiConnected {
                 Text(midiManager.dfuStatusMessage)
-                    .font(.system(size: 13))
-                    .foregroundColor(midiManager.hardwareStatus == .dfuMode ? .green : .blue)
+                    .font(.system(size: smallFontSize))
+                    .frame(width: contentWidth, height: 20, alignment: .leading)
+                    .padding(.vertical, 2)
+            } else {
+                Text("")
+                    .frame(width: contentWidth, height: 20)
                     .padding(.vertical, 2)
             }
-            
-            // Enter Firmware Update Mode Button
-            Button(action: {
-                midiManager.sendFirmwareUpdateMode()
-                startRebootSequence()
-            }) {
-                Text("Enter Firmware Update Mode")
-                    .padding()
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .stroke(midiManager.midiConnected ? Color.green : Color.gray, lineWidth: 2)
-                    )
-            }
-            .disabled(!midiManager.midiConnected || isRebooting || midiManager.hardwareStatus == .dfuMode)
-            .opacity((midiManager.midiConnected && !isRebooting && midiManager.hardwareStatus != .dfuMode) ? 1.0 : 0.5)
-            .padding(.bottom, 5)
-            
-            // Reboot status message
+        }
+    }
+    
+    private var firmwareUpdateButton: some View {
+        Button(action: {
+            midiManager.sendFirmwareUpdateMode()
+            startRebootSequence()
+        }) {
+            Text("Enter Firmware Update Mode")
+                .font(.system(size: buttonFontSize, weight: .medium))
+                .foregroundColor(midiManager.midiConnected ? Color.green : Color.gray)
+                .padding(.vertical)
+                .frame(width: contentWidth)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .stroke(midiManager.midiConnected ? Color.green : Color.gray, lineWidth: 2)
+                )
+        }
+        .disabled(!midiManager.midiConnected || isRebooting || midiManager.dfuModeConfirmed)
+        .opacity((midiManager.midiConnected && !isRebooting && !midiManager.dfuModeConfirmed) ? 1.0 : 0.5)
+        .padding(.bottom, 5)
+    }
+    
+    private var statusMessageView: some View {
+        Group {
             if isRebooting {
-                Text("Rebooting SWIFT into Update Mode, please wait... (\(remainingTime)s)")
+                Text("Rebooting SWIFT into DFU Mode... (\(remainingTime)s)")
                     .foregroundColor(.orange)
-                    .font(.system(size: 14))
+                    .font(.system(size: bodyFontSize))
+                    .frame(width: contentWidth)
                     .padding(.bottom, 10)
-            } else if midiManager.hardwareStatus == .dfuMode {
-                Text("Device is ready for firmware flashing!")
+            } else if midiManager.dfuModeConfirmed {
+                Text("SWIFT is ready for Bluetooth firmware update!")
                     .foregroundColor(.green)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: bodyFontSize))
+                    .frame(width: contentWidth)
                     .padding(.bottom, 10)
             } else {
                 Spacer()
-                    .frame(height: 24) // Maintains layout even when message is hidden
+                    .frame(width: contentWidth, height: 24)
                     .padding(.bottom, 10)
             }
-            
-            // BLE Connection Buttons
-            HStack{
-                Button(action: {
-                    ble.startScanning()
-                }){
-                    Text("connect").padding().overlay(RoundedRectangle(cornerRadius: 15).stroke(colorChange(ble.connected), lineWidth: 2))
+        }
+    }
+    
+    private var firmwareSelectionView: some View {
+        VStack {
+            Text("Select Firmware Version")
+                .font(.system(size: titleFontSize, weight: .semibold))
+                .frame(width: contentWidth)
+                .opacity(midiManager.dfuModeConfirmed ? 1.0 : 0.3)
+            HStack(spacing: 20) {
+                ForEach(firmwareVersions, id: \.self) { version in
+                    Button(action: {
+                        selectedFirmware = version
+                    }) {
+                        Text(version)
+                            .font(.system(size: buttonFontSize))
+                            .padding()
+                            .frame(width: 70)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 13)
+                                    .stroke((selectedFirmware == version) && midiManager.dfuModeConfirmed ? Color.green : Color.gray, lineWidth: 2)
+                            )
+                            .background((selectedFirmware == version) && midiManager.dfuModeConfirmed ? Color.green.opacity(0.2) : Color.clear)
+                    } .opacity(midiManager.dfuModeConfirmed ? 1.0 : 0.3)
+                    .disabled(!midiManager.dfuModeConfirmed)
                 }
-                .disabled(isRebooting)
-                .opacity(isRebooting ? 0.5 : 1.0)
-                
-                Button(action: {
-                    ble.disconnect(forget: false)
-                }){
-                    Text("disconnect").padding().overlay(RoundedRectangle(cornerRadius: 15).stroke(colorChange(ble.connected), lineWidth: 2))
-                }
-                .disabled(isRebooting)
-                .opacity(isRebooting ? 0.5 : 1.0)
-                
-                Button(action: {
-                    ble.disconnect(forget: true)
-                }){
-                    Text("forget bond").padding().overlay(RoundedRectangle(cornerRadius: 15).stroke(colorChange(ble.connected), lineWidth: 2))
-                }
-                .disabled(isRebooting)
-                .opacity(isRebooting ? 0.5 : 1.0)
             }
-            .padding(.bottom, 10)
+            .frame(width: contentWidth)
+            .padding()
+        }
+    }
+    
+    private var dfuStatusView: some View {
+        VStack(alignment: .leading) {
+            Text("Device : \(ble.name)")
+                .font(.system(size: smallFontSize))
+                .frame(width: contentWidth, alignment: .leading)
+            Text("Transfer speed : \(ble.kBPerSecond, specifier: "%.1f") kB/s")
+                .font(.system(size: smallFontSize))
+                .frame(width: contentWidth, alignment: .leading)
+            Text("Elapsed time   : \(ble.elapsedTime, specifier: "%.1f") s")
+                .font(.system(size: smallFontSize))
+                .frame(width: contentWidth, alignment: .leading)
             
-            // BLE Status Information
-            VStack {
-                Text("Device : \(ble.name)")
-                Text("Transfer speed : \(ble.kBPerSecond, specifier: "%.1f") kB/s")
-                Text("Elapsed time   : \(ble.elapsedTime, specifier: "%.1f") s")
-                Text("Upload progress: \(ble.transferProgress, specifier: "%.1f") %")
-            }
-            .padding(.bottom, 10)
-            
-            // Firmware Version Selection
-            VStack {
-                Text("Select Firmware Version").font(.headline)
+            // Replace text with progress bar
+            VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    ForEach(firmwareVersions, id: \.self) { version in
-                        Button(action: {
-                            selectedFirmware = version
-                        }) {
-                            Text(version)
-                                .padding()
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .stroke(selectedFirmware == version ? Color.green : colorChange(ble.connected), lineWidth: 2)
-                                )
-                                .background(selectedFirmware == version ? Color.green.opacity(0.2) : Color.clear)
-                        }
-                    }
+                    Text("Upload progress")
+                        .font(.system(size: smallFontSize))
+                    Spacer()
+                    Text("\(ble.transferProgress, specifier: "%.1f") %")
+                        .font(.system(size: smallFontSize))
                 }
-                .padding()
+                .frame(width: contentWidth)
+                ProgressView(value: ble.transferProgress, total: 100)
+                    .progressViewStyle(LinearProgressViewStyle())
+                    .frame(height: 25)
+                    .frame(width: contentWidth)
             }
-            
-            // Flash Button
-            HStack{
-                Button(action: {
-                    ble.sendFile(filename: selectedFirmware, fileEnding: ".bin")
-                }){
-                    Text("Flash \(selectedFirmware).bin to ESP32").padding().overlay(RoundedRectangle(cornerRadius: 15).stroke(colorChange(ble.connected), lineWidth: 2))
-                }.disabled(ble.transferOngoing)
-            }
+        }
+        .opacity(midiManager.dfuModeConfirmed ? 1 : 0.3)
+        .padding(.top, 10)
+    }
+    
+    private var flashButton: some View {
+        Button(action: {
+            ble.sendFile(filename: selectedFirmware, fileEnding: ".bin")
+        }) {
+            Text("Flash \(selectedFirmware) to SWIFT")
+                .font(.system(size: buttonFontSize, weight: .medium))
+                .foregroundColor(midiManager.dfuModeConfirmed ? Color.green : Color.gray)
+                .padding(.vertical)
+                .frame(width: contentWidth)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .stroke(midiManager.dfuModeConfirmed ? Color.green : Color.gray, lineWidth: 2)
+                )
+        }
+        .opacity(midiManager.dfuModeConfirmed ? 1 : 0.3)
+        .disabled(ble.transferOngoing)
+    }
+    
+    var body: some View {
+        VStack {
+            headerView
+            firmwareUpdateButton
+            statusMessageView
+            firmwareSelectionView
+            flashButton
+            dfuStatusView
             
             if !ble.errorMessage.isEmpty {
                 Text(ble.errorMessage)
+                    .font(.system(size: smallFontSize))
                     .foregroundColor(.red)
+                    .frame(width: contentWidth)
                     .padding()
             }
-            
-            Divider()
-            VStack{
-                Stepper("chunks (1-4) per write cycle: \(ble.chunkCount)", value: $ble.chunkCount, in: 1...4)
-                    .disabled(ble.transferOngoing)
-            }
         }
+        .frame(width: contentWidth + 40) // Add some padding
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+        )
         .padding()
         .accentColor(colorChange(ble.connected))
         .onDisappear {
-            // Clean up timer when view disappears
             cancelRebootTimer()
+        }
+        .onChange(of: midiManager.dfuModeConfirmed) { newValue in
+            if newValue {
+                ble.startScanning()
+            }
         }
     }
     
     // Start the reboot sequence with timer
     private func startRebootSequence() {
         isRebooting = true
-        remainingTime = 15
+        remainingTime = 10
         
         // Cancel any existing timer
         cancelRebootTimer()
@@ -183,10 +239,11 @@ struct ContentView: View {
         // Create a new timer that fires every second
         rebootTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [self] timer in
             // Check if DFU mode has been confirmed
-            if self.midiManager.hardwareStatus == .dfuMode {
+            if self.midiManager.dfuModeConfirmed {
                 self.isRebooting = false
                 self.cancelRebootTimer()
                 // No need to connect automatically - we're already in DFU mode
+                //TODO: this is unlikely to work since firmware only confirms dfumode with midi once at startup
                 return
             }
             
@@ -196,10 +253,6 @@ struct ContentView: View {
                 self.isRebooting = false
                 self.cancelRebootTimer()
                 
-                // Automatically try to connect after timer finishes
-                DispatchQueue.main.async {
-                    self.ble.startScanning()
-                }
             }
         }
         
