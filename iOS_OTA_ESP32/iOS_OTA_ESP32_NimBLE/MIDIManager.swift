@@ -200,7 +200,7 @@ class MIDIManager: ObservableObject {
             }
             
             print("DFU Status Update: \(self.dfuStatusMessage)")
-            self.updateConnectionStatus()
+            self.updateConnectionStatus()   
         }
     }
     

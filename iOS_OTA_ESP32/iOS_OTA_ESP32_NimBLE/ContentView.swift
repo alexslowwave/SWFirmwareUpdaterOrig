@@ -32,6 +32,7 @@ struct ContentView: View {
         VStack {
             Text("Shiftwave SWIFT Firmware Updater").bold()
                 .font(.system(size: titleFontSize))
+                .kerning(0.5)
                 .frame(width: contentWidth, alignment: .center)
                 .padding(.bottom, 10)
             connectionStatusView
@@ -74,8 +75,8 @@ struct ContentView: View {
             Text("Enter Firmware Update Mode")
                 .font(.system(size: buttonFontSize, weight: .medium))
                 .foregroundColor(midiManager.midiConnected ? Color.green : Color.gray)
-                .padding()
-                .frame(width: contentWidth - 40) // Account for padding
+                .padding(.vertical)
+                .frame(width: contentWidth)
                 .overlay(
                     RoundedRectangle(cornerRadius: 15)
                         .stroke(midiManager.midiConnected ? Color.green : Color.gray, lineWidth: 2)
@@ -114,7 +115,7 @@ struct ContentView: View {
                 .font(.system(size: bodyFontSize, weight: .semibold))
                 .frame(width: contentWidth)
                 .opacity(midiManager.dfuModeConfirmed ? 1.0 : 0.3)
-            HStack {
+            HStack(spacing: 20) {
                 ForEach(firmwareVersions, id: \.self) { version in
                     Button(action: {
                         selectedFirmware = version
@@ -122,6 +123,7 @@ struct ContentView: View {
                         Text(version)
                             .font(.system(size: buttonFontSize))
                             .padding()
+                            .frame(width: 70)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 13)
                                     .stroke((selectedFirmware == version) && midiManager.dfuModeConfirmed ? Color.green : Color.gray, lineWidth: 2)
@@ -160,7 +162,7 @@ struct ContentView: View {
                 .frame(width: contentWidth)
                 ProgressView(value: ble.transferProgress, total: 100)
                     .progressViewStyle(LinearProgressViewStyle())
-                    .frame(height: 20)
+                    .frame(height: 25)
                     .frame(width: contentWidth)
             }
         }
@@ -175,8 +177,8 @@ struct ContentView: View {
             Text("Flash \(selectedFirmware).bin to SWIFT")
                 .font(.system(size: buttonFontSize, weight: .medium))
                 .foregroundColor(midiManager.dfuModeConfirmed ? Color.green : Color.gray)
-                .padding()
-                .frame(width: contentWidth - 40) // Account for padding
+                .padding(.vertical)
+                .frame(width: contentWidth)
                 .overlay(
                     RoundedRectangle(cornerRadius: 15)
                         .stroke(midiManager.dfuModeConfirmed ? Color.green : Color.gray, lineWidth: 2)
