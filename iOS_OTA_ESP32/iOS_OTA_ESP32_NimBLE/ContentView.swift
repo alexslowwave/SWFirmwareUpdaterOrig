@@ -16,7 +16,7 @@ struct ContentView: View {
     
     // States for timer functionality
     @State private var isRebooting = false
-    @State private var remainingTime = 15
+    @State private var remainingTime = 10
     @State private var rebootTimer: Timer?
     
     private var headerView: some View {
@@ -78,7 +78,7 @@ struct ContentView: View {
                     .font(.system(size: 14))
                     .padding(.bottom, 10)
             } else if midiManager.dfuModeConfirmed {
-                Text("SWIFT is ready for firmware flashing")
+                Text("SWIFT is ready for firmware update!")
                     .foregroundColor(.green)
                     .font(.system(size: 14))
                     .padding(.bottom, 10)
@@ -120,7 +120,20 @@ struct ContentView: View {
             Text("Device : \(ble.name)")
             Text("Transfer speed : \(ble.kBPerSecond, specifier: "%.1f") kB/s")
             Text("Elapsed time   : \(ble.elapsedTime, specifier: "%.1f") s")
-            Text("Upload progress: \(ble.transferProgress, specifier: "%.1f") %")
+            
+            // Replace text with progress bar
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("Upload progress")
+                    Spacer()
+                    Text("\(ble.transferProgress, specifier: "%.1f") %")
+                }
+                .frame(width: 200)
+                ProgressView(value: ble.transferProgress, total: 100)
+                    .progressViewStyle(LinearProgressViewStyle())
+                    .frame(height: 20)
+                    .frame(width: 200)
+            }
         }
         .opacity(midiManager.dfuModeConfirmed ? 1 : 0.3)
         .padding(.top, 10)
@@ -169,7 +182,7 @@ struct ContentView: View {
     // Start the reboot sequence with timer
     private func startRebootSequence() {
         isRebooting = true
-        remainingTime = 15
+        remainingTime = 10
         
         // Cancel any existing timer
         cancelRebootTimer()
@@ -191,10 +204,6 @@ struct ContentView: View {
                 self.isRebooting = false
                 self.cancelRebootTimer()
                 
-                // Automatically try to connect after timer finishes
-                DispatchQueue.main.async {
-                    self.ble.startScanning()
-                }
             }
         }
         
