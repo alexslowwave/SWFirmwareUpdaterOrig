@@ -189,6 +189,16 @@ struct ContentView: View {
         }
         .frame(width: contentWidth + 40) // Add some padding
         .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+        )
+        .padding()
         .accentColor(colorChange(ble.connected))
         .onDisappear {
             cancelRebootTimer()
