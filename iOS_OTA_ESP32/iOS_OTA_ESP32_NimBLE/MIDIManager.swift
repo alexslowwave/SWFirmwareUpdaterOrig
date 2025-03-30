@@ -29,10 +29,11 @@ class MIDIManager: ObservableObject {
             }
         }
     }
-    @Published var dfuStatusMessage: String = "Checking device status...please wait..." // Status message for DFU mode
+    @Published var dfuStatusMessage: String = "please wait..." // Status message for DFU mode
     
     // Constants
-    private let maxDfuStatusPollAttempts = 5 // Maximum number of DFU status poll attempts before restarting
+    private let maxDfuStatusPollAttempts = 7 // Maximum number of DFU status poll attempts before restarting
+    private let maxRestartAttempts = 3 // Maximum number of restart attempts before giving up
     
     private var midiClient: MIDIClientRef = 0
     private var outputPort: MIDIPortRef = 0
@@ -363,14 +364,16 @@ class MIDIManager: ObservableObject {
                     hardwareStatus = .connected
                     
                     // Start polling for DFU status when connected
-                    startDFUStatusPolling()
+                    //startDFUStatusPolling()
                 }
             }
-            // If already connected, we don't need to do anything
+            // If already connected, we still need to start polling in case an update just finished, we want to show the successful result
+            startDFUStatusPolling()
         } else {
             // Device is disconnected
             if hardwareStatus == .connected || hardwareStatus == .scanning {
                 // Device was previously connected and is now disconnected
+                dfuStatusMessage = "device disconnected"
                 print("Device Disconnected")
                 selectedMidiDestination = nil
                 midiDeviceName = ""
@@ -395,7 +398,7 @@ class MIDIManager: ObservableObject {
         case .connected:
             connectionStatusMessage = "Connected to \(midiDeviceName) via USB"
         case .disconnected:
-            connectionStatusMessage = "Device not found (Retrying...)"
+            connectionStatusMessage = "Searching for SWIFT USB connection..."
         }
     }
     
@@ -433,7 +436,9 @@ class MIDIManager: ObservableObject {
         // Check if we've reached the maximum number of attempts
         if dfuStatusPollAttempts >= maxDfuStatusPollAttempts {
             print("Maximum DFU status poll attempts (\(maxDfuStatusPollAttempts)) reached without response. Restarting device...")
-            dfuStatusMessage = "No response, attempting device restart..."
+            // Calculate the next restart attempt number (current + 1)
+            let nextRestartAttempt = restartAttempts + 1
+            dfuStatusMessage = "No response, attempting restart \(nextRestartAttempt) of \(maxRestartAttempts - 1)..."
             restartSWIFT()
             
             // Reset the counter after attempting restart
@@ -450,8 +455,8 @@ class MIDIManager: ObservableObject {
         print("Sending restart command to SWIFT (attempt \(restartAttempts))")
         
         // Check if we've reached the maximum restart attempts
-        if restartAttempts > 2 {
-            print("Maximum restart attempts (2) reached. Stopping restart attempts.")
+        if restartAttempts >= maxRestartAttempts {
+            print("Maximum restart attempts (\(maxRestartAttempts)) reached. Stopping restart attempts.")
             dfuStatusMessage = "Please disconnect and reconnect SWIFT"
             // Stop polling to prevent further restart attempts
             stopDfuStatusPolling()
@@ -463,7 +468,7 @@ class MIDIManager: ObservableObject {
         
         // Reset the status message after attempting restart
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            self.dfuStatusMessage = "Checking device status...please wait..."
+            self.dfuStatusMessage = "Checking status...please wait..."
         }
     }
     

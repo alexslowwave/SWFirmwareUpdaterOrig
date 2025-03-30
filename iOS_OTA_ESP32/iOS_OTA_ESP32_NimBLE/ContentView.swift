@@ -23,14 +23,14 @@ struct ContentView: View {
     private let contentWidth: CGFloat = 300
     
     // Standardized font sizes
-    private let titleFontSize: CGFloat = 16
+    private let titleFontSize: CGFloat = 18
     private let bodyFontSize: CGFloat = 14
     private let buttonFontSize: CGFloat = 15 // Slightly larger than body text
     private let smallFontSize: CGFloat = 13
     
     private var headerView: some View {
         VStack {
-            Text("Shiftwave SWIFT Firmware Updater").bold()
+            Text("Shiftwave Firmware Updater").bold()
                 .font(.system(size: titleFontSize))
                 .kerning(0.5)
                 .frame(width: contentWidth, alignment: .center)
@@ -47,7 +47,7 @@ struct ContentView: View {
                     .frame(width: 10, height: 10)
                 
                 Text(midiManager.connectionStatusMessage)
-                    .font(.system(size: bodyFontSize))
+                    .font(.system(size: smallFontSize))
                 
                 Spacer()
             }
@@ -112,7 +112,7 @@ struct ContentView: View {
     private var firmwareSelectionView: some View {
         VStack {
             Text("Select Firmware Version")
-                .font(.system(size: bodyFontSize, weight: .semibold))
+                .font(.system(size: titleFontSize, weight: .semibold))
                 .frame(width: contentWidth)
                 .opacity(midiManager.dfuModeConfirmed ? 1.0 : 0.3)
             HStack(spacing: 20) {
@@ -174,7 +174,7 @@ struct ContentView: View {
         Button(action: {
             ble.sendFile(filename: selectedFirmware, fileEnding: ".bin")
         }) {
-            Text("Flash \(selectedFirmware).bin to SWIFT")
+            Text("Flash \(selectedFirmware) to SWIFT")
                 .font(.system(size: buttonFontSize, weight: .medium))
                 .foregroundColor(midiManager.dfuModeConfirmed ? Color.green : Color.gray)
                 .padding(.vertical)
