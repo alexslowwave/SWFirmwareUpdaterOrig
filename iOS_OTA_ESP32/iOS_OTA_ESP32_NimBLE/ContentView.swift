@@ -19,9 +19,13 @@ struct ContentView: View {
     @State private var remainingTime = 10
     @State private var rebootTimer: Timer?
     
+    // Define a consistent width for the UI
+    private let contentWidth: CGFloat = 300
+    
     private var headerView: some View {
         VStack {
             Text("Shiftwave SWIFT Firmware Updater").bold()
+                .frame(width: contentWidth, alignment: .center)
                 .padding(.bottom, 10)
             connectionStatusView
         }
@@ -36,17 +40,20 @@ struct ContentView: View {
                 
                 Text(midiManager.connectionStatusMessage)
                     .font(.system(size: 14))
+                
+                Spacer()
             }
+            .frame(width: contentWidth)
             .padding(.vertical, 5)
             
             if midiManager.midiConnected {
                 Text(midiManager.dfuStatusMessage)
                     .font(.system(size: 13))
-                    .frame(height: 20)
+                    .frame(width: contentWidth, height: 20, alignment: .leading)
                     .padding(.vertical, 2)
             } else {
                 Text("")
-                    .frame(height: 20)
+                    .frame(width: contentWidth, height: 20)
                     .padding(.vertical, 2)
             }
         }
@@ -60,6 +67,7 @@ struct ContentView: View {
             Text("Enter Firmware Update Mode")
                 .foregroundColor(midiManager.midiConnected ? Color.green : Color.gray)
                 .padding()
+                .frame(width: contentWidth - 40) // Account for padding
                 .overlay(
                     RoundedRectangle(cornerRadius: 15)
                         .stroke(midiManager.midiConnected ? Color.green : Color.gray, lineWidth: 2)
@@ -73,18 +81,20 @@ struct ContentView: View {
     private var statusMessageView: some View {
         Group {
             if isRebooting {
-                Text("Rebooting SWIFT into Update Mode, please wait... (\(remainingTime)s)")
+                Text("Rebooting SWIFT into DFU Mode... (\(remainingTime)s)")
                     .foregroundColor(.orange)
                     .font(.system(size: 14))
+                    .frame(width: contentWidth)
                     .padding(.bottom, 10)
             } else if midiManager.dfuModeConfirmed {
                 Text("SWIFT is ready for firmware update!")
                     .foregroundColor(.green)
                     .font(.system(size: 14))
+                    .frame(width: contentWidth)
                     .padding(.bottom, 10)
             } else {
                 Spacer()
-                    .frame(height: 24)
+                    .frame(width: contentWidth, height: 24)
                     .padding(.bottom, 10)
             }
         }
@@ -94,6 +104,7 @@ struct ContentView: View {
         VStack {
             Text("Select Firmware Version")
                 .font(.headline)
+                .frame(width: contentWidth)
                 .opacity(midiManager.dfuModeConfirmed ? 1.0 : 0.3)
             HStack {
                 ForEach(firmwareVersions, id: \.self) { version in
@@ -111,15 +122,19 @@ struct ContentView: View {
                     .disabled(!midiManager.dfuModeConfirmed)
                 }
             }
+            .frame(width: contentWidth)
             .padding()
         }
     }
     
     private var dfuStatusView: some View {
-        VStack {
+        VStack(alignment: .leading) {
             Text("Device : \(ble.name)")
+                .frame(width: contentWidth, alignment: .leading)
             Text("Transfer speed : \(ble.kBPerSecond, specifier: "%.1f") kB/s")
+                .frame(width: contentWidth, alignment: .leading)
             Text("Elapsed time   : \(ble.elapsedTime, specifier: "%.1f") s")
+                .frame(width: contentWidth, alignment: .leading)
             
             // Replace text with progress bar
             VStack(alignment: .leading, spacing: 4) {
@@ -128,15 +143,32 @@ struct ContentView: View {
                     Spacer()
                     Text("\(ble.transferProgress, specifier: "%.1f") %")
                 }
-                .frame(width: 200)
+                .frame(width: contentWidth)
                 ProgressView(value: ble.transferProgress, total: 100)
                     .progressViewStyle(LinearProgressViewStyle())
                     .frame(height: 20)
-                    .frame(width: 200)
+                    .frame(width: contentWidth)
             }
         }
         .opacity(midiManager.dfuModeConfirmed ? 1 : 0.3)
         .padding(.top, 10)
+    }
+    
+    private var flashButton: some View {
+        Button(action: {
+            ble.sendFile(filename: selectedFirmware, fileEnding: ".bin")
+        }) {
+            Text("Flash \(selectedFirmware).bin to SWIFT")
+                .foregroundColor(midiManager.dfuModeConfirmed ? Color.green : Color.gray)
+                .padding()
+                .frame(width: contentWidth - 40) // Account for padding
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .stroke(midiManager.dfuModeConfirmed ? Color.green : Color.gray, lineWidth: 2)
+                )
+        }
+        .opacity(midiManager.dfuModeConfirmed ? 1 : 0.3)
+        .disabled(ble.transferOngoing)
     }
     
     var body: some View {
@@ -145,28 +177,17 @@ struct ContentView: View {
             firmwareUpdateButton
             statusMessageView
             firmwareSelectionView
-            
-            Button(action: {
-                ble.sendFile(filename: selectedFirmware, fileEnding: ".bin")
-            }) {
-                Text("Flash \(selectedFirmware).bin to SWIFT")
-                    .foregroundColor(midiManager.dfuModeConfirmed ? Color.green : Color.gray)
-                    .padding()
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .stroke(midiManager.dfuModeConfirmed ? Color.green : Color.gray, lineWidth: 2)
-                    )
-            }.opacity(midiManager.dfuModeConfirmed ? 1 : 0.3)
-            .disabled(ble.transferOngoing)
-            
+            flashButton
             dfuStatusView
             
             if !ble.errorMessage.isEmpty {
                 Text(ble.errorMessage)
                     .foregroundColor(.red)
+                    .frame(width: contentWidth)
                     .padding()
             }
         }
+        .frame(width: contentWidth + 40) // Add some padding
         .padding()
         .accentColor(colorChange(ble.connected))
         .onDisappear {
