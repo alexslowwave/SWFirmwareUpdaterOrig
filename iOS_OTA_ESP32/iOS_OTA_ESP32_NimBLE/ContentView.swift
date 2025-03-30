@@ -22,9 +22,16 @@ struct ContentView: View {
     // Define a consistent width for the UI
     private let contentWidth: CGFloat = 300
     
+    // Standardized font sizes
+    private let titleFontSize: CGFloat = 16
+    private let bodyFontSize: CGFloat = 14
+    private let buttonFontSize: CGFloat = 15 // Slightly larger than body text
+    private let smallFontSize: CGFloat = 13
+    
     private var headerView: some View {
         VStack {
             Text("Shiftwave SWIFT Firmware Updater").bold()
+                .font(.system(size: titleFontSize))
                 .frame(width: contentWidth, alignment: .center)
                 .padding(.bottom, 10)
             connectionStatusView
@@ -39,7 +46,7 @@ struct ContentView: View {
                     .frame(width: 10, height: 10)
                 
                 Text(midiManager.connectionStatusMessage)
-                    .font(.system(size: 14))
+                    .font(.system(size: bodyFontSize))
                 
                 Spacer()
             }
@@ -48,7 +55,7 @@ struct ContentView: View {
             
             if midiManager.midiConnected {
                 Text(midiManager.dfuStatusMessage)
-                    .font(.system(size: 13))
+                    .font(.system(size: smallFontSize))
                     .frame(width: contentWidth, height: 20, alignment: .leading)
                     .padding(.vertical, 2)
             } else {
@@ -65,6 +72,7 @@ struct ContentView: View {
             startRebootSequence()
         }) {
             Text("Enter Firmware Update Mode")
+                .font(.system(size: buttonFontSize, weight: .medium))
                 .foregroundColor(midiManager.midiConnected ? Color.green : Color.gray)
                 .padding()
                 .frame(width: contentWidth - 40) // Account for padding
@@ -83,13 +91,13 @@ struct ContentView: View {
             if isRebooting {
                 Text("Rebooting SWIFT into DFU Mode... (\(remainingTime)s)")
                     .foregroundColor(.orange)
-                    .font(.system(size: 14))
+                    .font(.system(size: bodyFontSize))
                     .frame(width: contentWidth)
                     .padding(.bottom, 10)
             } else if midiManager.dfuModeConfirmed {
                 Text("SWIFT is ready for firmware update!")
                     .foregroundColor(.green)
-                    .font(.system(size: 14))
+                    .font(.system(size: bodyFontSize))
                     .frame(width: contentWidth)
                     .padding(.bottom, 10)
             } else {
@@ -103,7 +111,7 @@ struct ContentView: View {
     private var firmwareSelectionView: some View {
         VStack {
             Text("Select Firmware Version")
-                .font(.headline)
+                .font(.system(size: bodyFontSize, weight: .semibold))
                 .frame(width: contentWidth)
                 .opacity(midiManager.dfuModeConfirmed ? 1.0 : 0.3)
             HStack {
@@ -112,6 +120,7 @@ struct ContentView: View {
                         selectedFirmware = version
                     }) {
                         Text(version)
+                            .font(.system(size: buttonFontSize))
                             .padding()
                             .overlay(
                                 RoundedRectangle(cornerRadius: 13)
@@ -130,18 +139,23 @@ struct ContentView: View {
     private var dfuStatusView: some View {
         VStack(alignment: .leading) {
             Text("Device : \(ble.name)")
+                .font(.system(size: smallFontSize))
                 .frame(width: contentWidth, alignment: .leading)
             Text("Transfer speed : \(ble.kBPerSecond, specifier: "%.1f") kB/s")
+                .font(.system(size: smallFontSize))
                 .frame(width: contentWidth, alignment: .leading)
             Text("Elapsed time   : \(ble.elapsedTime, specifier: "%.1f") s")
+                .font(.system(size: smallFontSize))
                 .frame(width: contentWidth, alignment: .leading)
             
             // Replace text with progress bar
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text("Upload progress")
+                        .font(.system(size: smallFontSize))
                     Spacer()
                     Text("\(ble.transferProgress, specifier: "%.1f") %")
+                        .font(.system(size: smallFontSize))
                 }
                 .frame(width: contentWidth)
                 ProgressView(value: ble.transferProgress, total: 100)
@@ -159,6 +173,7 @@ struct ContentView: View {
             ble.sendFile(filename: selectedFirmware, fileEnding: ".bin")
         }) {
             Text("Flash \(selectedFirmware).bin to SWIFT")
+                .font(.system(size: buttonFontSize, weight: .medium))
                 .foregroundColor(midiManager.dfuModeConfirmed ? Color.green : Color.gray)
                 .padding()
                 .frame(width: contentWidth - 40) // Account for padding
@@ -182,6 +197,7 @@ struct ContentView: View {
             
             if !ble.errorMessage.isEmpty {
                 Text(ble.errorMessage)
+                    .font(.system(size: smallFontSize))
                     .foregroundColor(.red)
                     .frame(width: contentWidth)
                     .padding()
