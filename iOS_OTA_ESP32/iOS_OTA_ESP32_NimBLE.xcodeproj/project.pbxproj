@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BC00CFF92D99C26C0033CFB1 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BC00CFF82D99C26C0033CFB1 /* CoreBluetooth.framework */; };
 		C564792925BE75DC00126AA8 /* iOS_OTA_ESP32App.swift in Sources */ = {isa = PBXBuildFile; fileRef = C564792825BE75DC00126AA8 /* iOS_OTA_ESP32App.swift */; };
 		C564792B25BE75DC00126AA8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C564792A25BE75DC00126AA8 /* ContentView.swift */; };
 		C564792D25BE75DD00126AA8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C564792C25BE75DD00126AA8 /* Assets.xcassets */; };
@@ -22,7 +23,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C564792525BE75DC00126AA8 /* iOS_OTA_ESP32_NimBLE.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iOS_OTA_ESP32_NimBLE.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC00CFF82D99C26C0033CFB1 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
+		C564792525BE75DC00126AA8 /* SWFirmwareUpdate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SWFirmwareUpdate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C564792825BE75DC00126AA8 /* iOS_OTA_ESP32App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS_OTA_ESP32App.swift; sourceTree = "<group>"; };
 		C564792A25BE75DC00126AA8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C564792C25BE75DD00126AA8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -43,6 +45,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC00CFF92D99C26C0033CFB1 /* CoreBluetooth.framework in Frameworks */,
 				D7AA48C52BB3FF0000000002 /* CoreMIDI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -62,7 +65,7 @@
 		C564792625BE75DC00126AA8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C564792525BE75DC00126AA8 /* iOS_OTA_ESP32_NimBLE.app */,
+				C564792525BE75DC00126AA8 /* SWFirmwareUpdate.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -105,6 +108,7 @@
 		D7AA48B62BB3FF0000000003 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				BC00CFF82D99C26C0033CFB1 /* CoreBluetooth.framework */,
 				D7AA48B52BB3FF0000000002 /* CoreMIDI.framework */,
 			);
 			name = Frameworks;
@@ -127,7 +131,7 @@
 			);
 			name = iOS_OTA_ESP32_NimBLE;
 			productName = iOS_OTA_ESP32;
-			productReference = C564792525BE75DC00126AA8 /* iOS_OTA_ESP32_NimBLE.app */;
+			productReference = C564792525BE75DC00126AA8 /* SWFirmwareUpdate.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -325,8 +329,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "be.hallberg.iOS-OTA-ESP32";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.alex.SWFirmwareUpdaterOrig;
+				PRODUCT_NAME = SWFirmwareUpdate;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -347,8 +351,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "be.hallberg.iOS-OTA-ESP32";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.alex.SWFirmwareUpdaterOrig;
+				PRODUCT_NAME = SWFirmwareUpdate;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
