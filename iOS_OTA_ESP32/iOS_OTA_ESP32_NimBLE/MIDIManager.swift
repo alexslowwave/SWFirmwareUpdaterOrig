@@ -191,7 +191,7 @@ class MIDIManager: ObservableObject {
                 self.hardwareStatus = self.midiConnected ? .connected : .disconnected
                 print("Device confirmed normal mode operation and version number")
             case 127:
-                self.dfuStatusMessage = "SWIFT is in DFU mode"
+                self.dfuStatusMessage = "SWIFT is in BLE DFU mode"
                 self.dfuModeConfirmed = true
                 print("Device confirmed DFU mode active and ready for firmware update")
             default:

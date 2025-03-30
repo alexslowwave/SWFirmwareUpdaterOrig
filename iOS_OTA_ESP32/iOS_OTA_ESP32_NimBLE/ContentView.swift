@@ -96,7 +96,7 @@ struct ContentView: View {
                     .frame(width: contentWidth)
                     .padding(.bottom, 10)
             } else if midiManager.dfuModeConfirmed {
-                Text("SWIFT is ready for firmware update!")
+                Text("SWIFT is ready for Bluetooth firmware update!")
                     .foregroundColor(.green)
                     .font(.system(size: bodyFontSize))
                     .frame(width: contentWidth)
